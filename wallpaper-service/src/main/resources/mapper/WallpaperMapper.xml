@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.jff.WallpaperMapper">
+
+
+    <select id="getWallpaperVOListBySetId" resultType="org.jff.vo.WallpaperVO">
+        select w.wallpaper_id,w.name,w.url,w.current_subscribers
+        from wallpaper_info as w natural join wallpaper_set
+        where set_id=#{setId}
+    </select>
+</mapper>

@@ -1,0 +1,59 @@
+server:
+  port: 7000
+
+
+spring:
+  application:
+    name: gateway
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wallpaper
+    username: root
+    password: kkkzoz
+    driver-class-name: org.postgresql.Driver
+    platform: POSTGRESQL
+  redis:
+    database: 0
+    host: localhost
+    port: 6380
+    password:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://localhost:8848
+      server-addr: http://localhost:8848
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+#      default-filters:
+#        - name: Retry
+#          args:
+#            retries: 3
+#            methods: GET,POST
+#            series: SERVER_ERROR
+#            backoff:
+#              firstBackoff: 50ms
+#              maxBackoff: 500ms
+#              factor: 2
+#              basedOnPreviousValue: false
+      routes:
+        - id: user-service-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/user/**
+        - id: wallpaper-service-route
+          uri: lb://wallpaper-service
+          predicates:
+            - Path=/api/v1/wallpaper/**
+        - id: set-service-route
+          uri: lb://set-service
+          predicates:
+            - Path=/api/v1/set/**
+        - id: article-service-route
+          uri: lb://article-service
+          predicates:
+            - Path=/api/v1/article/**
+        - id: comment-service-route
+          uri: lb://comment-service
+          predicates:
+            - Path=/api/v1/comment/**

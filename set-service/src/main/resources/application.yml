@@ -1,0 +1,33 @@
+server:
+  port: 7003
+
+spring:
+  application:
+    name: set-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://localhost:8848
+      server-addr: http://localhost:8848
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wallpaper
+    username: root
+    password: kkkzoz
+    driver-class-name: org.postgresql.Driver
+    platform: POSTGRESQL
+  redis:
+    database: 0
+    host: localhost
+    port: 6380
+    password:
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
