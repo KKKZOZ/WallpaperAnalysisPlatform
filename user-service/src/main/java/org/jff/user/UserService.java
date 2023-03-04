@@ -8,6 +8,7 @@ import org.jff.dto.UserDTO;
 import org.jff.global.APIException;
 import org.jff.global.ResponseVO;
 import org.jff.global.ResultCode;
+import org.jff.test.OrderMessageProducer;
 import org.jff.utils.JwtUtil;
 import org.jff.utils.RedisCache;
 import org.jff.utils.SecurityUtil;
@@ -36,13 +37,14 @@ public class UserService implements UserDetailsService {
 
     private final SecurityUtil securityUtil;
 
+    private final OrderMessageProducer orderMessageProducer;
     private final RedisCache redisCache;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public ResponseVO login(UserDTO userDTO) {
         Optional<User> optionalUser = userMapper.findByUsername(userDTO.getUsername());
-        if(optionalUser.isEmpty()){
+        if(!optionalUser.isPresent()){
             throw new APIException("用户不存在");
         }
         String userId = String.valueOf(optionalUser.get().getUserId());
@@ -124,5 +126,10 @@ public class UserService implements UserDetailsService {
             return userVO;
         }).toList();
         return list;
+    }
+
+    public ResponseVO send(String msg) {
+        orderMessageProducer.sendMsg(msg);
+        return new ResponseVO(ResultCode.SUCCESS);
     }
 }

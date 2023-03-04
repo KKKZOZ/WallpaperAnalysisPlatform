@@ -3,6 +3,7 @@ package org.jff;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.Article;
+import org.jff.Entity.SearchBy;
 import org.jff.dto.ArticleLikeStatus;
 import org.jff.dto.SetLikeStatus;
 import org.jff.global.ResponseVO;
@@ -58,6 +59,18 @@ public class ArticleController {
                                     @RequestParam("articleId") Long articleId){
         log.info("userId: {}",userId);
         return articleService.deleteArticle(userId, articleId);
+    }
+
+    @GetMapping("/search")
+    // 用户搜索文章
+    public List<ArticleVO> searchArticle(@RequestHeader("userId") Long userId,
+                                         @RequestParam("name") String name,
+                                         @RequestParam("pageNum") Integer pageNum,
+                                         @RequestParam("pageSize") Integer pageSize,
+                                         @RequestParam("condition") Integer condition){
+        log.info("userId: {}",userId);
+        log.info("condition: {}",condition);
+        return articleService.searchArticle(userId, name, pageNum, pageSize, condition);
     }
 
     @PostMapping("/likeStatus")

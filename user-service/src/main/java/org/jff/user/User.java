@@ -22,6 +22,10 @@ public class User implements UserDetails {
 
     private String password;
 
+    private String email;
+
+    private boolean isEnabled;
+
     private String avatarUrl;
 
     @Override

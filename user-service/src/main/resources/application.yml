@@ -9,6 +9,24 @@ spring:
       discovery:
         server-addr: http://localhost:8848
       server-addr: http://localhost:8848
+    stream:
+      binders: #需要绑定的rabbitmq的服务信息
+        defaultRabbit: #定义的名称，用于bidding整合
+          type: rabbit  #消息组件类型
+          environment: #配置rabbimq连接环境
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: admin
+                password: 111111
+                virtual-host: /
+      bindings: #服务的整合处理
+        saveOrderOutput: #这个是消息通道的名称 --->保存订单输出通道
+          destination: exchange-saveOrder     #exchange名称,交换模式默认是topic;把SpringCloud stream的消息输出通道绑定到RabbitMQ的exchange-saveOrder交换器。
+          content-type: application/json      #设置消息的类型，本次为json
+          default-binder: defaultRabbit
+          group: saveOrderGroup
   datasource:
     url: jdbc:postgresql://localhost:5432/wallpaper
     username: root

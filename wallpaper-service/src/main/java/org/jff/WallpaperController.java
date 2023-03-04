@@ -3,7 +3,6 @@ package org.jff;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.SteamComment;
-import org.jff.Entity.Wallpaper;
 import org.jff.global.NotResponseBody;
 import org.jff.vo.WallpaperDetails;
 import org.jff.vo.WallpaperVO;
@@ -25,19 +24,30 @@ public class WallpaperController {
 
     @GetMapping()
     // 获取单个壁纸的所有信息
-    public WallpaperDetails getWallpaperById(@RequestParam Long wallpaperId){
+    public WallpaperDetails getWallpaperById(@RequestParam Long wallpaperId) {
         return wallpaperService.getWallpaperById(wallpaperId);
     }
 
     @GetMapping("/comment")
     // 获取单个壁纸的所有评论
-    public List<SteamComment> getCommentListByWallpaperId(@RequestParam Long wallpaperId){
+    public List<SteamComment> getCommentListByWallpaperId(@RequestParam Long wallpaperId) {
         return wallpaperService.getCommentListByWallpaperId(wallpaperId);
+    }
+
+    @GetMapping("/search")
+    public List<WallpaperVO> searchWallpaper(@RequestParam String name,
+                                             @RequestParam List<String> category,
+                                             @RequestParam Integer pageNum,
+                                             @RequestParam Integer pageSize,
+                                             @RequestParam Integer condition) {
+        log.info("name: --{}   null:{}",name.equals(""), name==null);
+        log.info("name: {}, category: {}, pageNum: {}, pageSize: {}, condition: {}", name, category, pageNum, pageSize, condition);
+        return wallpaperService.searchWallpaper(name, category, pageNum, pageSize, condition);
     }
 
     @GetMapping("/voList")
     @NotResponseBody("")
-    public List<WallpaperVO> getWallpaperVOListBySetId(@RequestParam Long setId){
+    public List<WallpaperVO> getWallpaperVOListBySetId(@RequestParam Long setId) {
         return wallpaperService.getWallpaperVOListBySetId(setId);
     }
 

@@ -50,6 +50,11 @@ public class UserController {
         return userService.updateUserInfo(user);
     }
 
+    @GetMapping("/send")
+    public ResponseVO send(@RequestParam String msg){
+        return userService.send(msg);
+    }
+
 
     @GetMapping("/dev")
     public String dev(){

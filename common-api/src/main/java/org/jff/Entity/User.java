@@ -11,6 +11,10 @@ public class User{
 
     private String password;
 
+    private String email;
+
+    private boolean isEnabled;
+
     private String avatarUrl;
 
 }

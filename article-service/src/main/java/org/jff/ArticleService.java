@@ -1,11 +1,13 @@
 package org.jff;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.Article;
 import org.jff.Entity.CommentType;
 import org.jff.Entity.LikeStatus;
+import org.jff.Entity.SearchBy;
 import org.jff.client.CommentServiceClient;
 import org.jff.client.UserServiceClient;
 import org.jff.dto.ArticleLikeStatus;
@@ -20,6 +22,7 @@ import org.jff.vo.UserVO;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -103,5 +106,31 @@ public class ArticleService {
         article.updateLikeStatus(oldStatus,curStatus);
         articleMapper.updateById(article);
         return new ResponseVO(ResultCode.SUCCESS);
+    }
+
+    public List<ArticleVO> searchArticle(Long userId, String name, Integer pageNum, Integer pageSize, Integer condition) {
+        // TODO:userID 没用到
+        List<ArticleVO> list = new ArrayList<>();
+        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        if (!name.equals(""))
+            queryWrapper.like(Article::getTitle, name);
+
+
+        // isLatest 1
+        // isHottest 2
+        if (condition == 1)
+            queryWrapper.orderByDesc(Article::getPublishTime);
+        if (condition == 2)
+            queryWrapper.orderByDesc(Article::getLikeCount);
+
+        Page<Article> page = new Page<>(pageNum, pageSize);
+
+        List<Article> articleList = articleMapper.selectPage(page, queryWrapper).getRecords();
+
+        for (Article article : articleList) {
+            ArticleVO articleVO = new ArticleVO(article);
+            list.add(articleVO);
+        }
+        return list;
     }
 }

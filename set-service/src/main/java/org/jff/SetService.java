@@ -1,6 +1,7 @@
 package org.jff;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.CommentType;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -145,16 +147,21 @@ public class SetService {
     }
 
     public List<SetInfoVO> recommendSet() {
+        // TODO:性能优化
+
         // 先获得所有公开的set
         // lambda
-        LambdaQueryWrapper<Set> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Set::isPublic, true);
-        List<Set> setList = setMapper.selectList(wrapper);
-        List<Set> randomlist = setList.stream().unordered().toList();
+//        LambdaQueryWrapper<Set> wrapper = new LambdaQueryWrapper<>();
+//        wrapper.eq(Set::isPublic, true);
+        QueryWrapper<Set> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_public",true);
+        List<Set> setList = setMapper.selectList(queryWrapper);
+
+        Collections.shuffle(setList);
         List<SetInfoVO> list = new ArrayList<>();
 
-        for(int i=0;i<=Math.min(7,randomlist.size());i++){
-            Set set = randomlist.get(i);
+        for(int i=0;i<=Math.min(7,setList.size()-1);i++){
+            Set set = setList.get(i);
             SetInfoVO setInfoVO = new SetInfoVO();
             setInfoVO.setSetId(set.getSetId());
             setInfoVO.setSetName(set.getSetName());

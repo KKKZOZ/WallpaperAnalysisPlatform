@@ -30,16 +30,23 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         if(!exchange.getRequest().getHeaders().containsKey("token")){
             String path = exchange.getRequest().getPath().value();
-            if(path.startsWith("/api/v1/user/login") || path.startsWith("/api/v1/user/register")){
+            if(path.startsWith("/api/v1/file/storage")
+                    ||path.startsWith("/api/v1/user/login")
+                    ||path.startsWith("/api/v1/user/register")){
                 return chain.filter(exchange);
             }
             else {
-                log.info("Token 为空");
+                log.info("Header:Token is Not Present");
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
         }
         String token = exchange.getRequest().getHeaders().get("token").get(0);
+        String path = exchange.getRequest().getPath().value();
+        log.info("path: {}",path);
+        if(token.isEmpty() && (path.startsWith("/api/v1/user/login") || path.startsWith("/api/v1/user/register"))){
+            return chain.filter(exchange);
+        }
         log.info("token: {}",token);
         User user = null;
         try {

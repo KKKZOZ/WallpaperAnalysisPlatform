@@ -64,7 +64,7 @@ public class CommentController {
     @NotResponseBody("")
     // 获取文章的评论列表
     // 此接口为服务内部调用
-    public List<CommentVO> getCommentListByArticleId(@RequestParam Long userId,
+    public List<CommentVO> getCommentListByObjectId(@RequestParam Long userId,
                                                      @RequestParam Long objectId,
                                                      @RequestParam CommentType type) {
         return commentService.getCommentListByObjectId(userId, objectId,type);

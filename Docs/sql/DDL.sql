@@ -30,7 +30,9 @@ create table platform_user(
     user_id bigserial,
     username varchar(255),
     password varchar(255),
+    email varchar(255),
     avatar_url varchar(255),
+    is_enabled boolean,
     primary key (user_id)
 );
 

@@ -22,8 +22,13 @@
         <module>set-service</module>
         <module>article-service</module>
         <module>comment-service</module>
+        <module>email-service</module>
+        <module>notify-service</module>
     </modules>
     <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
     </properties>
 

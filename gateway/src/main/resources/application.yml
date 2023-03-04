@@ -57,3 +57,7 @@ spring:
           uri: lb://comment-service
           predicates:
             - Path=/api/v1/comment/**
+        - id: file-service-route
+          uri: lb://file-service
+          predicates:
+            - Path=/api/v1/file/**

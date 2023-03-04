@@ -52,6 +52,7 @@ public class CommentService {
         } else if(type == CommentType.SET) {
             wrapper.eq(Comment::getSetId, objectId);
         }
+        wrapper.orderByDesc(Comment::getPublishTime);
         List<Comment> commentList = commentMapper.selectList(wrapper);
         List<Long> userIdList = commentList.stream().map(Comment::getPublisherId).toList();
         List<PublisherVO> publisherVOList = userServiceClient.getUserInfoList(userIdList).stream().map(userVO -> {
