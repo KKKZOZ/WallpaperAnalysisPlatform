@@ -30,33 +30,54 @@ public class EmailNotificationService implements NotificationService{
     public void sendNotification(NotificationEvent notificationEvent) throws Exception {
 
         Long recipientId = notificationEvent.getRecipientId();
-        Long publisherId = notificationEvent.getPublisherId();
+        Integer type = notificationEvent.getType();
+        if(type==NotificationEvent.ACTIVATION){
+            log.info("Activation notification");
+            UserVO activatingUser = userServiceClient.getUserInfoList(List.of(recipientId)).get(0);
 
-        List<Long> userIdList = new ArrayList<>();
-        userIdList.add(recipientId);
-        userIdList.add(publisherId);
+            log.info("activatingUser {}",activatingUser);
+            // Creating a simple mail message
+            SimpleMailMessage mailMessage
+                    = new SimpleMailMessage();
+            mailMessage.setFrom(sender);
+            mailMessage.setTo(activatingUser.getEmail());
+            mailMessage.setSubject("Your activation code");
+            mailMessage.setText("Your activation code is "+notificationEvent.getContent());
 
-        List<UserVO> userVOList = userServiceClient.getUserInfoList(userIdList);
+            // Sending the mail
+            mailSender.send(mailMessage);
 
 
+        }
 
 
-        // Creating a simple mail message
-        SimpleMailMessage mailMessage
-                = new SimpleMailMessage();
-
-        EmailDetails details = new EmailDetails();
-
-        log.info("sender {}",sender);
-        log.info("email {}",details);
-        // Setting up necessary details
-        mailMessage.setFrom(sender);
-        mailMessage.setTo(details.getRecipient());
-        mailMessage.setText(details.getMsgBody());
-        mailMessage.setSubject(details.getSubject());
-
-        // Sending the mail
-        mailSender.send(mailMessage);
+//        Long publisherId = notificationEvent.getPublisherId();
+//
+//        List<Long> userIdList = new ArrayList<>();
+//        userIdList.add(recipientId);
+//        userIdList.add(publisherId);
+//
+//        List<UserVO> userVOList = userServiceClient.getUserInfoList(userIdList);
+//
+//
+//
+//
+//        // Creating a simple mail message
+//        SimpleMailMessage mailMessage
+//                = new SimpleMailMessage();
+//
+//        EmailDetails details = new EmailDetails();
+//
+//        log.info("sender {}",sender);
+//        log.info("email {}",details);
+//        // Setting up necessary details
+//        mailMessage.setFrom(sender);
+//        mailMessage.setTo(details.getRecipient());
+//        mailMessage.setText(details.getMsgBody());
+//        mailMessage.setSubject(details.getSubject());
+//
+//        // Sending the mail
+//        mailSender.send(mailMessage);
 
     }
 }

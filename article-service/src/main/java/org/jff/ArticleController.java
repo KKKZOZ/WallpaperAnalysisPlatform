@@ -9,6 +9,7 @@ import org.jff.dto.SetLikeStatus;
 import org.jff.global.ResponseVO;
 import org.jff.global.ResultCode;
 import org.jff.vo.ArticleVO;
+import org.jff.vo.ArticleVOList;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -63,14 +64,13 @@ public class ArticleController {
 
     @GetMapping("/search")
     // 用户搜索文章
-    public List<ArticleVO> searchArticle(@RequestHeader("userId") Long userId,
-                                         @RequestParam("name") String name,
-                                         @RequestParam("pageNum") Integer pageNum,
-                                         @RequestParam("pageSize") Integer pageSize,
-                                         @RequestParam("condition") Integer condition){
-        log.info("userId: {}",userId);
-        log.info("condition: {}",condition);
-        return articleService.searchArticle(userId, name, pageNum, pageSize, condition);
+    public ArticleVOList searchArticle(@RequestHeader("userId") Long userId,
+                                       @RequestParam("title") String title,
+                                       @RequestParam("pageNum") Integer pageNum,
+                                       @RequestParam("pageSize") Integer pageSize,
+                                       @RequestParam("condition") Integer condition){
+        log.info("title: {}, pageNum: {}, pageSize: {}, condition: {}",title, pageNum, pageSize, condition);
+        return articleService.searchArticle(userId, title, pageNum, pageSize, condition);
     }
 
     @PostMapping("/likeStatus")

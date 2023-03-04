@@ -28,33 +28,40 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
     private final RedisCache redisCache;
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // APIFOX 放行
         if(!exchange.getRequest().getHeaders().containsKey("token")){
             String path = exchange.getRequest().getPath().value();
             if(path.startsWith("/api/v1/file/storage")
                     ||path.startsWith("/api/v1/user/login")
+                    ||path.startsWith("/api/v1/user/activate")
                     ||path.startsWith("/api/v1/user/register")){
                 return chain.filter(exchange);
             }
             else {
                 log.info("Header:Token is Not Present");
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
                 return exchange.getResponse().setComplete();
             }
         }
         String token = exchange.getRequest().getHeaders().get("token").get(0);
         String path = exchange.getRequest().getPath().value();
         log.info("path: {}",path);
-        if(token.isEmpty() && (path.startsWith("/api/v1/user/login") || path.startsWith("/api/v1/user/register"))){
+        log.info("isEmpty: {}",token.isEmpty());
+        log.info("token: {}",token);
+        // 前端放行
+        if(token.isEmpty() &&
+                (path.startsWith("/api/v1/user/login")
+                        ||path.startsWith("/api/v1/user/activate")
+                        ||path.startsWith("/api/v1/user/register"))){
             return chain.filter(exchange);
         }
-        log.info("token: {}",token);
         User user = null;
         try {
             Claims claims = JwtUtil.parseJWT(token);
             user = JSONObject.parseObject(claims.getSubject(), User.class);
         } catch (Exception e) {
             log.info("token 非法");
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             //TODO: 返回同一结构体
             return exchange.getResponse().setComplete();
         }
@@ -65,7 +72,7 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
         log.info("tokenInRedis: {}",tokenInRedis);
         if(Objects.isNull(user) || !token.equals(tokenInRedis)){
             log.info("Token 已过期");
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             //TODO: 返回同一结构体
             return exchange.getResponse().setComplete();
         }

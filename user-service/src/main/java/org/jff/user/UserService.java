@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jff.Entity.NotificationEvent;
 import org.jff.dto.UserDTO;
 import org.jff.global.APIException;
 import org.jff.global.ResponseVO;
@@ -23,8 +24,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -35,8 +39,6 @@ public class UserService implements UserDetailsService {
 
     private final AuthenticationManager authenticationManager;
 
-    private final SecurityUtil securityUtil;
-
     private final OrderMessageProducer orderMessageProducer;
     private final RedisCache redisCache;
 
@@ -44,10 +46,14 @@ public class UserService implements UserDetailsService {
 
     public ResponseVO login(UserDTO userDTO) {
         Optional<User> optionalUser = userMapper.findByUsername(userDTO.getUsername());
-        if(!optionalUser.isPresent()){
+        if(optionalUser.isEmpty()){
             throw new APIException("用户不存在");
         }
-        String userId = String.valueOf(optionalUser.get().getUserId());
+        User user = optionalUser.get();
+        if(!user.isEnabled()){
+            return new ResponseVO(ResultCode.USER_NOT_ACTIVATED);
+        }
+        String userId = String.valueOf(user.getUserId());
         log.info("userId: {}", userId);
         redisCache.deleteObject("login:"+userId);
 
@@ -100,15 +106,33 @@ public class UserService implements UserDetailsService {
     }
 
     public ResponseVO register(User user){
+        // 考虑以下几种特殊情况
+        // 1. 重复注册
+        // 2. 用户名重复
+
         // 先把密码进行加密
         String originPassword = user.getPassword();
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        // 先设置用户为不可用的状态，等待邮箱验证激活
+        user.setEnabled(false);
         userMapper.insert(user);
-        UserDTO userDTO = UserDTO.builder()
-                .username(user.getUsername())
-                .password(originPassword)
-                .build();
-        return this.login(userDTO);
+
+        User newUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
+        Long userId = newUser.getUserId();
+        log.info("userId: {}", userId);
+        // 直接生成一个六位的随机验证码
+        String code = generateActivationCode();
+        log.info("code: {}", code);
+        // 存入redis中，设置过期时间为10分钟
+        redisCache.setCacheObject("activation:" + code, String.valueOf(userId), 10 * 60, TimeUnit.SECONDS);
+
+        NotificationEvent event = new NotificationEvent();
+        event.setRecipientId(userId);
+        event.setContent(code);
+        event.setType(NotificationEvent.ACTIVATION);
+        event.setCategory(0);
+        orderMessageProducer.sendEvent(event);
+        return new ResponseVO(ResultCode.SUCCESS);
     }
 
     public ResponseVO updateUserInfo(User user) {
@@ -117,19 +141,45 @@ public class UserService implements UserDetailsService {
     }
 
     public List<UserVO> getUserInfoList(List<Long> userIdList) {
-        List<User> userList = userMapper.selectBatchIds(userIdList);
-        List<UserVO> list = userList.stream().map(user -> {
+        List<UserVO> list = new ArrayList<>();
+        log.info("userIdList: {}", userIdList);
+        for(Long userId : userIdList) {
+            User user = userMapper.selectById(userId);
             UserVO userVO = new UserVO();
             userVO.setUserId(user.getUserId());
             userVO.setUsername(user.getUsername());
+            userVO.setEmail(user.getEmail());
             userVO.setAvatarUrl(user.getAvatarUrl());
-            return userVO;
-        }).toList();
+            list.add(userVO);
+        }
+        log.info("list: {}", list);
         return list;
     }
 
     public ResponseVO send(String msg) {
-        orderMessageProducer.sendMsg(msg);
+        orderMessageProducer.sendEvent(msg);
         return new ResponseVO(ResultCode.SUCCESS);
+    }
+
+    public ResponseVO activateUser(String code) {
+        String redisKey = "activation:" + code;
+        String value = redisCache.getCacheObject(redisKey);
+        if (value == null) {
+            return new ResponseVO(ResultCode.ACTIVATION_CODE_EXPIRED);
+        }
+        Long userId = Long.valueOf(value);
+        User user = userMapper.selectById(userId);
+        user.setEnabled(true);
+        userMapper.updateById(user);
+        return new ResponseVO(ResultCode.SUCCESS);
+    }
+    public String generateActivationCode() {
+        // It will generate 6 digit random Number.
+        // from 0 to 999999
+        Random rnd = new Random();
+        int number = rnd.nextInt(999999);
+
+        // this will convert any number sequence into 6 character.
+        return String.format("%06d", number);
     }
 }

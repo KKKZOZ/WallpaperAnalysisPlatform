@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.SteamComment;
 import org.jff.Entity.Wallpaper;
 import org.jff.vo.WallpaperDetails;
+import org.jff.vo.WallpaperListVO;
 import org.jff.vo.WallpaperVO;
 import org.springframework.stereotype.Service;
 
@@ -43,30 +44,43 @@ public class WallpaperService {
         return list;
     }
 
-    public List<WallpaperVO> searchWallpaper(String name, List<String> category, int pageNum, int pageSize, int condition) {
+    public WallpaperListVO searchWallpaper(
+            String name,
+            List<String> category,
+            int pageNum,
+            int pageSize,
+            List<String> resolution,
+            int condition) {
+        WallpaperListVO wallpaperListVO = new WallpaperListVO();
         List<WallpaperVO> list = new ArrayList<>();
         LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
         if (!name.equals(""))
             wrapper.like(Wallpaper::getName, name);
-        if (category.size()>0) {
+        if (category.size() > 0) {
             wrapper.in(Wallpaper::getCategory, category);
         }
-        if (condition==1)
+        if(resolution.size()>0){
+            wrapper.in(Wallpaper::getResolution, resolution);
+        }
+        if (condition == 1)
             wrapper.orderByDesc(Wallpaper::getCreateTime);
-        if (condition==2)
+        if (condition == 2)
             wrapper.orderByDesc(Wallpaper::getCurrentSubscribers);
-        if (condition==3)
+        if (condition == 3)
             wrapper.orderByDesc(Wallpaper::getRating);
 
         Page<Wallpaper> page = new Page<>(pageNum, pageSize);
 
 
-        List<Wallpaper> wallpaperList = wallpaperMapper.selectPage(page, wrapper).getRecords();
+        Page<Wallpaper> wallpaperPage = wallpaperMapper.selectPage(page, wrapper);
+        log.info("total: {}", wallpaperPage.getTotal());
+        List<Wallpaper> wallpaperList = wallpaperPage.getRecords();
         for (Wallpaper wallpaper : wallpaperList) {
             WallpaperVO wallpaperVO = new WallpaperVO(wallpaper);
             list.add(wallpaperVO);
         }
-
-        return list;
+        wallpaperListVO.setList(list);
+        wallpaperListVO.setTotal(wallpaperPage.getTotal());
+        return wallpaperListVO;
     }
 }

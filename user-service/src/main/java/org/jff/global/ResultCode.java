@@ -12,14 +12,9 @@ public enum ResultCode {
     LOGIN_SUCCESS(1001,"登录成功"),
     LOGOUT_SUCCESS(1002,"退出成功"),
 
-    QUESTIONS_GET_FAILED(2001,"题库剩余量为0"),
+    ACTIVATION_CODE_EXPIRED(2000,"激活码已过期"),
+    USER_NOT_ACTIVATED(2001,"用户未激活，请查看邮箱通过验证码激活");
 
-    FAVORITE_POST_FAILED(3001,"该题已经存在"),
-
-    RESERVE_FAILED(4001,"预约人数已满"),
-    RESERVE_ERROR(4002,"你已经预约过这个时间段了"),
-    RESERVE_CANCEL_ERROR(4003, "你没有预约过这段时间"),
-    INVITATION_CODE_NOT_EXIST(6001,"邀请码不存在");
 
     private final int code;
     private final String message;

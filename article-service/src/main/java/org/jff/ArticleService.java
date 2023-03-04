@@ -15,10 +15,7 @@ import org.jff.global.APIException;
 import org.jff.global.ResponseVO;
 import org.jff.global.ResultCode;
 import org.jff.mapper.LikeStatusMapper;
-import org.jff.vo.ArticleVO;
-import org.jff.vo.CommentVO;
-import org.jff.vo.PublisherVO;
-import org.jff.vo.UserVO;
+import org.jff.vo.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -108,14 +105,15 @@ public class ArticleService {
         return new ResponseVO(ResultCode.SUCCESS);
     }
 
-    public List<ArticleVO> searchArticle(Long userId, String name, Integer pageNum, Integer pageSize, Integer condition) {
+    public ArticleVOList searchArticle(Long userId, String title, Integer pageNum, Integer pageSize, Integer condition) {
         // TODO:userID 没用到
+
+        ArticleVOList articleVOList = new ArticleVOList();
+
         List<ArticleVO> list = new ArrayList<>();
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
-        if (!name.equals(""))
-            queryWrapper.like(Article::getTitle, name);
-
-
+        if (!title.equals(""))
+            queryWrapper.like(Article::getTitle, title);
         // isLatest 1
         // isHottest 2
         if (condition == 1)
@@ -125,12 +123,27 @@ public class ArticleService {
 
         Page<Article> page = new Page<>(pageNum, pageSize);
 
-        List<Article> articleList = articleMapper.selectPage(page, queryWrapper).getRecords();
+        Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
+        log.info("articlePageTotal:{}", articlePage.getTotal());
 
+        List<Article> articleList = articlePage.getRecords();
+
+        List<Long> userIdList = new ArrayList<>();
         for (Article article : articleList) {
             ArticleVO articleVO = new ArticleVO(article);
+            userIdList.add(article.getPublisherId());
             list.add(articleVO);
         }
-        return list;
+        log.info("userIdListSize:{}", userIdList.size());
+        log.info("listSize:{}", list.size());
+        List<UserVO> userInfoList = userServiceClient.getUserInfoList(userIdList);
+        log.info("userInfoListSize:{}", userInfoList.size());
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).setPublisherInfo(new PublisherVO(userInfoList.get(i)));
+        }
+
+        articleVOList.setList(list);
+        articleVOList.setTotal(articlePage.getTotal());
+        return articleVOList;
     }
 }
