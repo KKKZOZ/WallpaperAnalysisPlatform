@@ -13,7 +13,9 @@ public enum ResultCode {
     LOGOUT_SUCCESS(1002,"退出成功"),
 
     ACTIVATION_CODE_EXPIRED(2000,"激活码已过期"),
-    USER_NOT_ACTIVATED(2001,"用户未激活，请查看邮箱通过验证码激活");
+    USER_NOT_ACTIVATED(2001,"用户未激活，请查看邮箱通过验证码激活"),
+    USERNAME_ALREADY_EXIST(2002,"用户名已存在"),
+    ;
 
 
     private final int code;

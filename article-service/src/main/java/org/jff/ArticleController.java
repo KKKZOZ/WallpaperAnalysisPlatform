@@ -80,5 +80,17 @@ public class ArticleController {
         return articleService.changeLikeStatus(userId,likeStatus);
     }
 
+    @GetMapping("/publisherId")
+    // 根据文章id获取文章作者id
+    public Long getPublisherIdByArticleId(@RequestParam("articleId") Long articleId){
+        return articleService.getPublisherIdByArticleId(articleId);
+    }
+
+    @GetMapping("/info")
+    // 根据文章id获取文章信息
+    public Article getArticleInfoByArticleId(@RequestParam("articleId") Long articleId){
+        return articleService.getArticleInfoByArticleId(articleId);
+    }
+
 
 }

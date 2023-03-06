@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.NotificationEvent;
+import org.jff.Entity.TargetInfo;
 import org.jff.client.UserServiceClient;
 import org.jff.vo.UserVO;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,8 +47,34 @@ public class EmailNotificationService implements NotificationService{
 
             // Sending the mail
             mailSender.send(mailMessage);
+        }
+        if(type==NotificationEvent.COMMENT){
+            log.info("Comment notification");
 
+            // Creating a simple mail message
+            SimpleMailMessage mailMessage
+                    = new SimpleMailMessage();
 
+            UserVO initiator = notificationEvent.getInitiatorInfo();
+            TargetInfo targetInfo = notificationEvent.getTargetInfo();
+
+            mailMessage.setFrom(sender);
+            mailMessage.setTo(initiator.getEmail());
+            if(notificationEvent.getCategory()==NotificationEvent.ARTICLE){
+                mailMessage.setSubject("您的文章收到了新的评论");
+                String content = "您的文章《"+targetInfo.getTargetName()+"》收到了来自用户 "
+                        + initiator.getUsername()+" 的新评论："+notificationEvent.getContent();
+                mailMessage.setText(content);
+
+            }
+            if(notificationEvent.getCategory()==NotificationEvent.COMMENT){
+                mailMessage.setSubject("您的收藏集收到了新的评论");
+                String content = "您的收藏集《"+targetInfo.getTargetName()+"》收到了来自用户 "
+                        + initiator.getUsername()+" 的新评论："+notificationEvent.getContent();
+                mailMessage.setText(content);
+            }
+            // Sending the mail
+            mailSender.send(mailMessage);
         }
 
 

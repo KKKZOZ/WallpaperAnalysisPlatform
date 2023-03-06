@@ -13,6 +13,8 @@ public class SteamComment {
     private Long commentId;
     private Long wallpaperId;
     private String username;
+
+    private String avatarUrl;
     private String createTime;
     private String content;
 }

@@ -1,10 +1,13 @@
 package org.jff.Entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jff.vo.UserVO;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationEvent {
@@ -22,7 +25,9 @@ public class NotificationEvent {
 
     private Long recipientId;
 
-    private Long publisherId;
+    private UserVO initiatorInfo;
+
+    private TargetInfo targetInfo;
 
     private String content;
 

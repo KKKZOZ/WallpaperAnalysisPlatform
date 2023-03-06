@@ -45,9 +45,9 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
         }
         String token = exchange.getRequest().getHeaders().get("token").get(0);
         String path = exchange.getRequest().getPath().value();
-        log.info("path: {}",path);
-        log.info("isEmpty: {}",token.isEmpty());
-        log.info("token: {}",token);
+//        log.info("path: {}",path);
+//        log.info("isEmpty: {}",token.isEmpty());
+//        log.info("token: {}",token);
         // 前端放行
         if(token.isEmpty() &&
                 (path.startsWith("/api/v1/user/login")
@@ -67,9 +67,9 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
         }
 
         String redisKey = "login:"+user.getUserId();
-        log.info("redisKey: {}",redisKey);
+//        log.info("redisKey: {}",redisKey);
         String tokenInRedis = (String) redisCache.getCacheObject(redisKey);
-        log.info("tokenInRedis: {}",tokenInRedis);
+//        log.info("tokenInRedis: {}",tokenInRedis);
         if(Objects.isNull(user) || !token.equals(tokenInRedis)){
             log.info("Token 已过期");
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);

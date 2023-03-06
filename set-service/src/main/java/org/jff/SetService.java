@@ -89,14 +89,19 @@ public class SetService {
         SetVO setVO = new SetVO(set);
         int status = likeStatusMapper
                 .getLikeStatusByUserIdAndObjectID(userId,setId,LikeStatusMapper.SET).getStatus();
-        List<WallpaperVO> wallpaperList = wallpaperServiceClient.getWallpaperVOListBySetId(setId);
-        List<CommentVO> commentList = commentServiceClient.getCommentListByObjectId(userId, setId, CommentType.SET);
-        UserVO userVO = userServiceClient.getUserInfoList(List.of(set.getUserId())).get(0);
+
+        List<WallpaperVO> wallpaperList = wallpaperServiceClient
+                .getWallpaperVOListBySetId(setId);
+        List<CommentVO> commentList = commentServiceClient
+                .getCommentListByObjectId(userId, setId, CommentType.SET);
+        UserVO userVO = userServiceClient
+                .getUserInfoList(List.of(set.getUserId())).get(0);
         PublisherVO publisherVO = new PublisherVO(userVO);
         setVO.setLikeStatus(status);
         setVO.setWallpaperList(wallpaperList);
         setVO.setCommentList(commentList);
         setVO.setPublisherInfo(publisherVO);
+        setVO.setUpdatable(set.getUserId() == userId);
         return setVO;
     }
 
@@ -182,5 +187,13 @@ public class SetService {
             list.add(setInfoVO);
         }
         return list;
+    }
+
+    public Long getPublisherIdBySetId(Long setId) {
+        return setMapper.selectById(setId).getUserId();
+    }
+
+    public Set getSetInfoBySetId(Long setId) {
+        return setMapper.selectById(setId);
     }
 }

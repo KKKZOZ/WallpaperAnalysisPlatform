@@ -1,9 +1,13 @@
 package org.jff.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jff.Entity.Wallpaper;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class WallpaperVO {
     private Long wallpaperId;
     private String name;

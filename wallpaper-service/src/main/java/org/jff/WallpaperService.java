@@ -45,23 +45,21 @@ public class WallpaperService {
     }
 
     public WallpaperListVO searchWallpaper(
-            String name,
-            List<String> category,
-            int pageNum,
-            int pageSize,
+            String name, List<String> category,
+            int pageNum, int pageSize,
             List<String> resolution,
             int condition) {
         WallpaperListVO wallpaperListVO = new WallpaperListVO();
         List<WallpaperVO> list = new ArrayList<>();
         LambdaQueryWrapper<Wallpaper> wrapper = new LambdaQueryWrapper<>();
+
         if (!name.equals(""))
             wrapper.like(Wallpaper::getName, name);
-        if (category.size() > 0) {
+        if (category.size() > 0)
             wrapper.in(Wallpaper::getCategory, category);
-        }
-        if(resolution.size()>0){
+        if(resolution.size()>0)
             wrapper.in(Wallpaper::getResolution, resolution);
-        }
+
         if (condition == 1)
             wrapper.orderByDesc(Wallpaper::getCreateTime);
         if (condition == 2)
@@ -70,7 +68,6 @@ public class WallpaperService {
             wrapper.orderByDesc(Wallpaper::getRating);
 
         Page<Wallpaper> page = new Page<>(pageNum, pageSize);
-
 
         Page<Wallpaper> wallpaperPage = wallpaperMapper.selectPage(page, wrapper);
         log.info("total: {}", wallpaperPage.getTotal());

@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: user-service
+  zipkin:
+    baseUrl: http://localhost:9411
+    sleuth:
+      sampler:
+        percentage: 1
   cloud:
     nacos:
       discovery:
@@ -18,8 +23,8 @@ spring:
               rabbitmq:
                 host: localhost
                 port: 5672
-                username: admin
-                password: 111111
+                username: guest
+                password: guest
                 virtual-host: /
       bindings: #服务的整合处理
         saveOrderOutput: #这个是消息通道的名称 --->保存订单输出通道

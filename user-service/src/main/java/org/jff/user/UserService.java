@@ -107,8 +107,12 @@ public class UserService implements UserDetailsService {
 
     public ResponseVO register(User user){
         // 考虑以下几种特殊情况
-        // 1. 重复注册
-        // 2. 用户名重复
+        // 1. 用户名重复
+        String username = user.getUsername();
+        if(userMapper.findByUsername(username).isPresent()){
+            return new ResponseVO(ResultCode.USERNAME_ALREADY_EXIST);
+        }
+
 
         // 先把密码进行加密
         String originPassword = user.getPassword();
@@ -117,7 +121,8 @@ public class UserService implements UserDetailsService {
         user.setEnabled(false);
         userMapper.insert(user);
 
-        User newUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
+        User newUser = userMapper
+                .selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, user.getUsername()));
         Long userId = newUser.getUserId();
         log.info("userId: {}", userId);
         // 直接生成一个六位的随机验证码

@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jff.Entity.Article;
 import org.jff.Entity.CommentType;
 import org.jff.Entity.LikeStatus;
-import org.jff.Entity.SearchBy;
 import org.jff.client.CommentServiceClient;
 import org.jff.client.UserServiceClient;
 import org.jff.dto.ArticleLikeStatus;
@@ -19,8 +18,9 @@ import org.jff.vo.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,21 +43,19 @@ public class ArticleService {
         return new ResponseVO(ResultCode.SUCCESS);
     }
 
-    public ArticleVO getArticleById(Long userId,Long articleId) {
+    public ArticleVO getArticleById(Long userId, Long articleId) {
         Article article = articleMapper.selectById(articleId);
         if (article == null) {
             throw new APIException(ResultCode.ARTICLE_IS_NOT_FOUND);
         }
-        List<CommentVO> commentList = commentServiceClient.getCommentListByObjectId(userId, articleId, CommentType.ARTICLE);
+        List<CommentVO> commentList = commentServiceClient
+                .getCommentListByObjectId(userId, articleId, CommentType.ARTICLE);
         int likeStatus = likeStatusMapper
-                .getLikeStatusByUserIdAndObjectID(userId, articleId,LikeStatusMapper.ARTICLE).getStatus();
+                .getLikeStatusByUserIdAndObjectID(userId, articleId, LikeStatusMapper.ARTICLE).getStatus();
 
         UserVO userVO = userServiceClient.getUserInfoList(List.of(article.getPublisherId())).get(0);
         PublisherVO publisherVO = new PublisherVO(userVO);
-        ArticleVO articleVO = new ArticleVO(article);
-        articleVO.setPublisherInfo(publisherVO);
-        articleVO.setCommentList(commentList);
-        articleVO.setLikeStatus(likeStatus);
+        ArticleVO articleVO = new ArticleVO(article, publisherVO, commentList, likeStatus);
         return articleVO;
     }
 
@@ -66,7 +64,7 @@ public class ArticleService {
         if (article == null) {
             return new ResponseVO(ResultCode.ARTICLE_IS_NOT_FOUND);
         }
-        if (article.getPublisherId()!=userId){
+        if (article.getPublisherId() != userId) {
             return new ResponseVO(ResultCode.AUTHORIZATION_ERROR);
         }
         articleMapper.deleteById(articleId);
@@ -78,7 +76,7 @@ public class ArticleService {
         if (article == null) {
             return new ResponseVO(ResultCode.ARTICLE_IS_NOT_FOUND);
         }
-        if (article.getPublisherId()!=userId){
+        if (article.getPublisherId() != userId) {
             return new ResponseVO(ResultCode.AUTHORIZATION_ERROR);
         }
         articleMapper.updateById(newArticle);
@@ -93,14 +91,14 @@ public class ArticleService {
 
     public ResponseVO changeLikeStatus(Long userId, ArticleLikeStatus likeStatus) {
         LikeStatus newStatus = likeStatusMapper
-                .getLikeStatusByUserIdAndObjectID(userId,likeStatus.getArticleId(),LikeStatusMapper.ARTICLE);
+                .getLikeStatusByUserIdAndObjectID(userId, likeStatus.getArticleId(), LikeStatusMapper.ARTICLE);
         int oldStatus = newStatus.getStatus();
         int curStatus = likeStatus.getStatus();
         newStatus.setStatus(curStatus);
         likeStatusMapper.updateById(newStatus);
 
         Article article = articleMapper.selectById(likeStatus.getArticleId());
-        article.updateLikeStatus(oldStatus,curStatus);
+        article.updateLikeStatus(oldStatus, curStatus);
         articleMapper.updateById(article);
         return new ResponseVO(ResultCode.SUCCESS);
     }
@@ -110,7 +108,6 @@ public class ArticleService {
 
         ArticleVOList articleVOList = new ArticleVOList();
 
-        List<ArticleVO> list = new ArrayList<>();
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         if (!title.equals(""))
             queryWrapper.like(Article::getTitle, title);
@@ -124,20 +121,15 @@ public class ArticleService {
         Page<Article> page = new Page<>(pageNum, pageSize);
 
         Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
-        log.info("articlePageTotal:{}", articlePage.getTotal());
-
         List<Article> articleList = articlePage.getRecords();
+        List<ArticleVO> list = articleList.stream()
+                .map(ArticleVO::new).collect(Collectors.toList());
 
-        List<Long> userIdList = new ArrayList<>();
-        for (Article article : articleList) {
-            ArticleVO articleVO = new ArticleVO(article);
-            userIdList.add(article.getPublisherId());
-            list.add(articleVO);
-        }
-        log.info("userIdListSize:{}", userIdList.size());
-        log.info("listSize:{}", list.size());
+        List<Long> userIdList = articleList.stream()
+                .map(Article::getPublisherId).collect(Collectors.toList());
         List<UserVO> userInfoList = userServiceClient.getUserInfoList(userIdList);
-        log.info("userInfoListSize:{}", userInfoList.size());
+
+        // TODO: stream
         for (int i = 0; i < list.size(); i++) {
             list.get(i).setPublisherInfo(new PublisherVO(userInfoList.get(i)));
         }
@@ -145,5 +137,21 @@ public class ArticleService {
         articleVOList.setList(list);
         articleVOList.setTotal(articlePage.getTotal());
         return articleVOList;
+    }
+
+    public Long getPublisherIdByArticleId(Long articleId) {
+        Article article = articleMapper.selectById(articleId);
+        if (article == null) {
+            throw new APIException(ResultCode.ARTICLE_IS_NOT_FOUND);
+        }
+        return article.getPublisherId();
+    }
+
+    public Article getArticleInfoByArticleId(Long articleId) {
+        Article article = articleMapper.selectById(articleId);
+        if (article == null) {
+            throw new APIException(ResultCode.ARTICLE_IS_NOT_FOUND);
+        }
+        return article;
     }
 }

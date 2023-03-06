@@ -30,6 +30,20 @@ public class ArticleVO {
         this.likeCount = article.getLikeCount();
         this.dislikeCount = article.getDislikeCount();
     }
+    public ArticleVO(Article article,
+                     PublisherVO publisherVO,
+                     List<CommentVO> commentList,
+                     int likeStatus){
+        this.articleId = article.getArticleId();
+        this.title = article.getTitle();
+        this.content = article.getContent();
+        this.publishTime = article.getPublishTime();
+        this.likeCount = article.getLikeCount();
+        this.dislikeCount = article.getDislikeCount();
+        this.publisherInfo = publisherVO;
+        this.commentList = commentList;
+        this.likeStatus = likeStatus;
+    }
 }
 
 

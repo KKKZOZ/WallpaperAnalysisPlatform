@@ -18,6 +18,8 @@ public class SetVO{
     private String coverUrl;
     private int likeStatus;
 
+    private boolean isUpdatable;
+
     private PublisherVO publisherInfo;
     private List<WallpaperVO> wallpaperList;
     private List<CommentVO> commentList;
