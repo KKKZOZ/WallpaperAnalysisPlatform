@@ -17,14 +17,12 @@ import org.jff.global.ResponseVO;
 import org.jff.global.ResultCode;
 import org.jff.mapper.LikeStatusMapper;
 import org.jff.mapper.SetRecordMapper;
+import org.jff.util.StringUtil;
 import org.jff.vo.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -44,6 +42,7 @@ public class SetService {
     public List<Set> getSetListByUserId(Long userId,boolean onlyPublic){
         LambdaQueryWrapper<Set> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Set::getUserId, userId);
+        wrapper.orderByAsc(Set::getCreateTime);
         if (onlyPublic) {
             wrapper.eq(Set::isPublic, true);
         }
@@ -51,6 +50,7 @@ public class SetService {
     }
 
     public ResponseVO createSet(Long userId, SetDTO setDTO) {
+        log.info("userId: {}  setDTO: {}", userId, setDTO);
         Set set = new Set();
         set.setUserId(userId);
         set.setPublic(setDTO.isPublic());
@@ -62,7 +62,7 @@ public class SetService {
     }
 
     public ResponseVO updateSet(Long userId, SetDTO setDTO) {
-        Optional<Set> optionalSet = setMapper.getSetById(setDTO.getSetID());
+        Optional<Set> optionalSet = setMapper.getSetById(setDTO.getSetId());
         if(optionalSet.isEmpty()){
             return new ResponseVO(ResultCode.SET_IS_NOT_FOUND);
         }
@@ -72,7 +72,8 @@ public class SetService {
         }
         set.setPublic(setDTO.isPublic());
         set.setSetName(setDTO.getSetName());
-        set.setCoverUrl(setDTO.getCoverUrl());
+        if(StringUtil.isNotBlank(setDTO.getCoverUrl()))
+            set.setCoverUrl(setDTO.getCoverUrl());
         setMapper.updateById(set);
 
         return new ResponseVO(ResultCode.SUCCESS);
@@ -160,7 +161,9 @@ public class SetService {
 //        wrapper.eq(Set::isPublic, true);
         QueryWrapper<Set> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_public",true);
-        List<Set> setList = setMapper.selectList(queryWrapper);
+        List<Set> setList =
+                new ArrayList<>(setMapper.selectList(queryWrapper).stream()
+                        .filter(set -> (set.getCoverUrl() != null && !set.getCoverUrl().equals(""))).toList());
 
         Collections.shuffle(setList);
         List<SetInfoVO> list = new ArrayList<>();
@@ -178,14 +181,8 @@ public class SetService {
 
     public List<SetInfoVO> getSetInfoList(Long userId) {
         List<Set> setList = getSetListByUserId(userId,false);
-        List<SetInfoVO> list = new ArrayList<>();
-        for(Set set : setList){
-            SetInfoVO setInfoVO = new SetInfoVO();
-            setInfoVO.setSetId(set.getSetId());
-            setInfoVO.setSetName(set.getSetName());
-            setInfoVO.setCoverUrl(set.getCoverUrl());
-            list.add(setInfoVO);
-        }
+        List<SetInfoVO> list = setList.stream()
+                .map(SetInfoVO::new).toList();
         return list;
     }
 

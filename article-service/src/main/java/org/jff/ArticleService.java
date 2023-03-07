@@ -56,6 +56,7 @@ public class ArticleService {
         UserVO userVO = userServiceClient.getUserInfoList(List.of(article.getPublisherId())).get(0);
         PublisherVO publisherVO = new PublisherVO(userVO);
         ArticleVO articleVO = new ArticleVO(article, publisherVO, commentList, likeStatus);
+        articleVO.setUpdatable(article.getPublisherId() == userId);
         return articleVO;
     }
 
@@ -132,6 +133,7 @@ public class ArticleService {
         // TODO: stream
         for (int i = 0; i < list.size(); i++) {
             list.get(i).setPublisherInfo(new PublisherVO(userInfoList.get(i)));
+            list.get(i).setUpdatable(articleList.get(i).getPublisherId() == userId);
         }
 
         articleVOList.setList(list);

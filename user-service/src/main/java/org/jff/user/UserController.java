@@ -43,6 +43,8 @@ public class UserController {
         if (user.getEmail() == null || user.getEmail().equals("")) {
             throw new APIException("邮箱不能为空");
         }
+        // TODO: 验证邮箱格式
+
         return userService.register(user);
     }
 
@@ -59,12 +61,11 @@ public class UserController {
         return userService.updateUserInfo(user);
     }
 
-    @GetMapping("/send")
-    public ResponseVO send(@RequestParam String msg) {
-        return userService.send(msg);
+
+    @GetMapping("/info")
+    public UserVO getUserInfo(@RequestHeader("userId") Long userId) {
+        return userService.getUserInfo(userId);
     }
-
-
     @GetMapping("/dev")
     public String dev() {
         return "dev";

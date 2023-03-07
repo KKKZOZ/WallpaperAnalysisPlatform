@@ -53,5 +53,4 @@ public class WallpaperController {
     public List<WallpaperVO> getWallpaperVOListBySetId(@RequestParam Long setId) {
         return wallpaperService.getWallpaperVOListBySetId(setId);
     }
-
 }

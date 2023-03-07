@@ -58,8 +58,9 @@ public class EmailNotificationService implements NotificationService{
             UserVO initiator = notificationEvent.getInitiatorInfo();
             TargetInfo targetInfo = notificationEvent.getTargetInfo();
 
+            UserVO author = userServiceClient.getUserInfoList(List.of(recipientId)).get(0);
             mailMessage.setFrom(sender);
-            mailMessage.setTo(initiator.getEmail());
+            mailMessage.setTo(author.getEmail());
             if(notificationEvent.getCategory()==NotificationEvent.ARTICLE){
                 mailMessage.setSubject("您的文章收到了新的评论");
                 String content = "您的文章《"+targetInfo.getTargetName()+"》收到了来自用户 "

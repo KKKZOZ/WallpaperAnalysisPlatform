@@ -34,7 +34,8 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
             if(path.startsWith("/api/v1/file/storage")
                     ||path.startsWith("/api/v1/user/login")
                     ||path.startsWith("/api/v1/user/activate")
-                    ||path.startsWith("/api/v1/user/register")){
+                    ||path.startsWith("/api/v1/user/register")
+                    ||path.startsWith("/api/v1/statistics")){
                 return chain.filter(exchange);
             }
             else {
@@ -52,7 +53,8 @@ public class JwtAuthenticationTokenFilter implements GlobalFilter, Ordered {
         if(token.isEmpty() &&
                 (path.startsWith("/api/v1/user/login")
                         ||path.startsWith("/api/v1/user/activate")
-                        ||path.startsWith("/api/v1/user/register"))){
+                        ||path.startsWith("/api/v1/user/register")
+                        ||path.startsWith("/api/v1/statistics"))){
             return chain.filter(exchange);
         }
         User user = null;

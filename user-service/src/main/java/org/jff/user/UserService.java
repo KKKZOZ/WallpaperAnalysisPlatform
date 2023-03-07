@@ -14,6 +14,8 @@ import org.jff.utils.JwtUtil;
 import org.jff.utils.RedisCache;
 import org.jff.utils.SecurityUtil;
 import org.jff.vo.UserVO;
+import org.springframework.cloud.sleuth.ScopedSpan;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class UserService implements UserDetailsService {
 
     private final UserMapper userMapper;
+    private final Tracer tracer;
 
     private final AuthenticationManager authenticationManager;
 
@@ -45,6 +48,9 @@ public class UserService implements UserDetailsService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public ResponseVO login(UserDTO userDTO) {
+
+        ScopedSpan loginSpan = tracer.startScopedSpan("login");
+        loginSpan.event("Check if user valid");
         Optional<User> optionalUser = userMapper.findByUsername(userDTO.getUsername());
         if(optionalUser.isEmpty()){
             throw new APIException("用户不存在");
@@ -57,6 +63,7 @@ public class UserService implements UserDetailsService {
         log.info("userId: {}", userId);
         redisCache.deleteObject("login:"+userId);
 
+        loginSpan.event("Authentication");
         // 创建一个新的token给SpringSecurity进行认证
         UsernamePasswordAuthenticationToken token =
                 new UsernamePasswordAuthenticationToken(userDTO.getUsername(), userDTO.getPassword());
@@ -67,6 +74,7 @@ public class UserService implements UserDetailsService {
             return new ResponseVO<>(ResultCode.LOGIN_FAILED);
         }
 
+        loginSpan.event("Create JWT");
         // 认证通过后，根据userId生成一个jwt
         User loginUser = (User) authenticate.getPrincipal();
         userId = String.valueOf(loginUser.getUserId());
@@ -76,6 +84,7 @@ public class UserService implements UserDetailsService {
         String jwt = JwtUtil.createJWT(JSONObject.toJSONString(loginUser));
 
         redisCache.setCacheObject("login:"+userId,jwt);
+        loginSpan.end();
 
         return new ResponseVO(ResultCode.SUCCESS, jwt);
     }
@@ -186,5 +195,15 @@ public class UserService implements UserDetailsService {
 
         // this will convert any number sequence into 6 character.
         return String.format("%06d", number);
+    }
+
+    public UserVO getUserInfo(Long userId) {
+        User user = userMapper.selectById(userId);
+        UserVO userVO = new UserVO();
+        userVO.setUserId(user.getUserId());
+        userVO.setUsername(user.getUsername());
+        userVO.setEmail(user.getEmail());
+        userVO.setAvatarUrl(user.getAvatarUrl());
+        return userVO;
     }
 }

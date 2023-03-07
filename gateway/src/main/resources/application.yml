@@ -30,17 +30,17 @@ spring:
       discovery:
         locator:
           enabled: true
-#      default-filters:
-#        - name: Retry
-#          args:
-#            retries: 3
-#            methods: GET,POST
-#            series: SERVER_ERROR
-#            backoff:
-#              firstBackoff: 50ms
-#              maxBackoff: 500ms
-#              factor: 2
-#              basedOnPreviousValue: false
+      #      default-filters:
+      #        - name: Retry
+      #          args:
+      #            retries: 3
+      #            methods: GET,POST
+      #            series: SERVER_ERROR
+      #            backoff:
+      #              firstBackoff: 50ms
+      #              maxBackoff: 500ms
+      #              factor: 2
+      #              basedOnPreviousValue: false
       routes:
         - id: user-service-route
           uri: lb://user-service
@@ -66,6 +66,10 @@ spring:
           uri: lb://file-service
           predicates:
             - Path=/api/v1/file/**
+        - id: wallpaper-service-route
+          uri: lb://wallpaper-service
+          predicates:
+            - Path=/api/v1/statistics/**
 
 
 management:

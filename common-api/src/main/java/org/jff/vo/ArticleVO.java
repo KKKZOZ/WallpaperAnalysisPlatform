@@ -20,6 +20,8 @@ public class ArticleVO {
 
     private PublisherVO publisherInfo;
     private int likeStatus;
+
+    private boolean isUpdatable;
     private List<CommentVO> commentList;
 
     public ArticleVO(Article article){
